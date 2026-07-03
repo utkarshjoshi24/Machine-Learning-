@@ -1,5 +1,5 @@
 #!/bin/sh
-'''exec' "/Users/utkarshjoshi/Desktop/Utkarsh Joshi/Data Science with Machine Learning/venv/bin/python3.12" "$0" "$@"
+'''exec' "/Users/utkarshjoshi/Desktop/Utkarsh Joshi/Data Science with Machine Learning/venv/bin/python3" "$0" "$@"
 ' '''
 import sys
 from streamlit.web.cli import main

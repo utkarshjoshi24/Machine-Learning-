@@ -1,5 +1,5 @@
 #!/bin/sh
-'''exec' "/Users/utkarshjoshi/Desktop/Utkarsh Joshi/Data Science with Machine Learning/venv/bin/python" "$0" "$@"
+'''exec' "/Users/utkarshjoshi/Desktop/Utkarsh Joshi/Data Science with Machine Learning/venv/bin/python3" "$0" "$@"
 ' '''
 import sys
 from jupyter_core.troubleshoot import main
