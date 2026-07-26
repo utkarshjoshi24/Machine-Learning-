@@ -3,30 +3,315 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>FWI Prediction — Algerian Forest Fires</title>
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            padding: 2rem 1rem;
+        }
+
+        /* ---- animated embers ---- */
+        .ember {
+            position: fixed;
+            border-radius: 50%;
+            background: rgba(255, 120, 50, .35);
+            filter: blur(1.5px);
+            animation: float 6s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .ember:nth-child(1) { width:6px; height:6px; left:8%;  animation-delay:0s;  animation-duration:7s; }
+        .ember:nth-child(2) { width:4px; height:4px; left:22%; animation-delay:1s;  animation-duration:5s; }
+        .ember:nth-child(3) { width:8px; height:8px; left:50%; animation-delay:2s;  animation-duration:8s; }
+        .ember:nth-child(4) { width:5px; height:5px; left:72%; animation-delay:.5s; animation-duration:6s; }
+        .ember:nth-child(5) { width:3px; height:3px; left:88%; animation-delay:3s;  animation-duration:9s; }
+        @keyframes float {
+            0%   { transform: translateY(100vh) scale(1); opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(.4); opacity: 0; }
+        }
+
+        /* ---- navbar ---- */
+        .navbar-custom {
+            background: rgba(255,255,255,.06);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
+        .navbar-custom .navbar-brand {
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.15rem;
+        }
+        .navbar-custom .nav-link {
+            color: rgba(255,255,255,.7);
+            transition: color .2s;
+        }
+        .navbar-custom .nav-link:hover { color: #f7971e; }
+
+        /* ---- glass card ---- */
+        .glass-card {
+            background: rgba(255,255,255,.06);
+            border: 1px solid rgba(255,255,255,.12);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-radius: 1.25rem;
+            padding: 2.5rem 2.5rem 2rem;
+            animation: fadeUp .7s ease-out;
+            position: relative;
+            z-index: 1;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .glass-card h2 {
+            color: #fff;
+            font-weight: 800;
+            font-size: 1.75rem;
+            margin-bottom: .25rem;
+        }
+        .glass-card .subtitle {
+            color: rgba(255,255,255,.55);
+            font-size: .95rem;
+            margin-bottom: 2rem;
+        }
+
+        /* ---- form fields ---- */
+        .form-floating > .form-control {
+            background: rgba(255,255,255,.07);
+            border: 1px solid rgba(255,255,255,.15);
+            color: #fff;
+            border-radius: .75rem;
+            transition: border-color .25s, box-shadow .25s;
+        }
+        .form-floating > .form-control::placeholder { color: transparent; }
+        .form-floating > .form-control:focus {
+            background: rgba(255,255,255,.1);
+            border-color: #f7971e;
+            box-shadow: 0 0 0 .2rem rgba(247, 151, 30, .25);
+            color: #fff;
+        }
+        .form-floating > label {
+            color: rgba(255,255,255,.5);
+        }
+        .form-floating > .form-control:focus ~ label,
+        .form-floating > .form-control:not(:placeholder-shown) ~ label {
+            color: #f7971e;
+        }
+
+        /* ---- tooltip badges ---- */
+        .info-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            font-size: .72rem;
+            color: rgba(255,255,255,.45);
+            margin-top: .25rem;
+        }
+
+        /* ---- submit button ---- */
+        .btn-fire {
+            background: linear-gradient(135deg, #f7971e, #ff512f);
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.05rem;
+            padding: .85rem 2.5rem;
+            border-radius: .75rem;
+            width: 100%;
+            transition: transform .2s, box-shadow .2s;
+        }
+        .btn-fire:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(255, 81, 47, .45);
+            color: #fff;
+        }
+
+        /* ---- result card ---- */
+        .result-card {
+            background: linear-gradient(135deg, rgba(247,151,30,.15), rgba(255,81,47,.1));
+            border: 1px solid rgba(247,151,30,.35);
+            border-radius: 1rem;
+            padding: 1.75rem 2rem;
+            text-align: center;
+            animation: fadeUp .5s ease-out;
+        }
+        .result-card .label {
+            color: rgba(255,255,255,.6);
+            font-size: .85rem;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            margin-bottom: .25rem;
+        }
+        .result-card .value {
+            color: #f7971e;
+            font-weight: 800;
+            font-size: 2.5rem;
+        }
+
+        /* ---- section header ---- */
+        .section-head {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            color: rgba(255,255,255,.4);
+            font-weight: 600;
+            font-size: .8rem;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 1rem;
+        }
+        .section-head::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,.12);
+        }
+
+        /* ---- footer ---- */
+        .footer-text {
+            color: rgba(255,255,255,.3);
+            font-size: .8rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+    </style>
 </head>
 <body>
-    <h1>FWI Prediction</h1>
-    <br>
-    <h2>Enter the details: </h2>
-    <br>
-    
-    <form action="{{url_for('predict_datapoint')}}", method="POST">
+    <!-- floating embers -->
+    <div class="ember"></div>
+    <div class="ember"></div>
+    <div class="ember"></div>
+    <div class="ember"></div>
+    <div class="ember"></div>
 
-        <input type="text" name="Temprature" placeholder="Temprature" required="required" /> <br>
-        <input type="text" name="RH" placeholder="RH" required="required" /> <br>
-        <input type="text" name="Ws" placeholder="Ws" required="required" /> <br>
-        <input type="text" name="Rain" placeholder="Rain" required="required" /> <br>
-        <input type="text" name="FFMC" placeholder="FFMC" required="required" /> <br>
-        <input type="text" name="DMC" placeholder="DMC" required="required" /> <br>
-        <input type="text" name="ISI" placeholder="ISI" required="required" /> <br>
-        <input type="text" name="Classes" placeholder="Classes" required="required" /> <br>
-        <input type="text" name="Region" placeholder="Region" required="required" /> <br>
+    <div class="container" style="max-width: 720px; position: relative; z-index: 1;">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand navbar-custom px-3 py-2">
+            <a class="navbar-brand" href="/">🔥 Forest Fire Predictor</a>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/predict">Predict</a></li>
+            </ul>
+        </nav>
 
-        <button type="submit">Submit</button>
+        <!-- Form Card -->
+        <div class="glass-card">
+            <h2><i class="bi bi-graph-up-arrow me-2" style="color:#f7971e"></i>FWI Prediction</h2>
+            <p class="subtitle">Enter meteorological &amp; fire-index observations below to predict the Fire Weather Index.</p>
 
-    </form>
+            <form action="{{url_for('predict_datapoint')}}", method="POST">
 
-    <h2>Predicted result: {{results}}</h2>
+                <!-- Weather Parameters -->
+                <div class="section-head"><i class="bi bi-cloud-sun"></i> Weather Parameters</div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="Temprature" name="Temprature" placeholder="Temprature" required="required" />
+                            <label for="Temprature">Temperature (°C)</label>
+                        </div>
+                        <span class="info-badge"><i class="bi bi-info-circle"></i> Noon temp in Celsius</span>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="RH" name="RH" placeholder="RH" required="required" />
+                            <label for="RH">Relative Humidity (%)</label>
+                        </div>
+                        <span class="info-badge"><i class="bi bi-info-circle"></i> Noon relative humidity</span>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="Ws" name="Ws" placeholder="Ws" required="required" />
+                            <label for="Ws">Wind Speed (km/h)</label>
+                        </div>
+                        <span class="info-badge"><i class="bi bi-info-circle"></i> Noon wind speed</span>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="Rain" name="Rain" placeholder="Rain" required="required" />
+                            <label for="Rain">Rain (mm)</label>
+                        </div>
+                        <span class="info-badge"><i class="bi bi-info-circle"></i> Total rain in 24 hrs</span>
+                    </div>
+                </div>
+
+                <!-- Fire Index Components -->
+                <div class="section-head"><i class="bi bi-fire"></i> Fire Index Components</div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="FFMC" name="FFMC" placeholder="FFMC" required="required" />
+                            <label for="FFMC">FFMC</label>
+                        </div>
+                        <span class="info-badge"><i class="bi bi-info-circle"></i> Fine Fuel Moisture Code</span>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="DMC" name="DMC" placeholder="DMC" required="required" />
+                            <label for="DMC">DMC</label>
+                        </div>
+                        <span class="info-badge"><i class="bi bi-info-circle"></i> Duff Moisture Code</span>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="ISI" name="ISI" placeholder="ISI" required="required" />
+                            <label for="ISI">ISI</label>
+                        </div>
+                        <span class="info-badge"><i class="bi bi-info-circle"></i> Initial Spread Index</span>
+                    </div>
+                </div>
+
+                <!-- Classification -->
+                <div class="section-head"><i class="bi bi-geo-alt"></i> Classification</div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="Classes" name="Classes" placeholder="Classes" required="required" />
+                            <label for="Classes">Classes</label>
+                        </div>
+                        <span class="info-badge"><i class="bi bi-info-circle"></i> 0 = not fire, 1 = fire</span>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="Region" name="Region" placeholder="Region" required="required" />
+                            <label for="Region">Region</label>
+                        </div>
+                        <span class="info-badge"><i class="bi bi-info-circle"></i> 0 = Bejaia, 1 = Sidi Bel-Abbes</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-fire">
+                    <i class="bi bi-lightning-charge-fill me-1"></i> Predict FWI
+                </button>
+            </form>
+
+            <!-- Result -->
+            {% if results is defined and results %}
+            <div class="result-card mt-4">
+                <div class="label">Predicted Fire Weather Index</div>
+                <div class="value">{{results}}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <p class="footer-text">Algerian Forest Fire Predictor &bull; Powered by Ridge Regression &amp; Flask</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
